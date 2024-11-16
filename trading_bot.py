@@ -176,7 +176,59 @@ def calculate_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     
     return df
 
+app = Flask(__name__)
+CORS(app)
 
+# Thread-safe queue to store the latest data
+latest_data = queue.Queue(maxsize=1)
+
+def setup_ngrok():
+    """Start ngrok tunnel for exposing Flask app"""
+    try:
+        public_url = ngrok.connect(5000).public_url
+        print(f"\n🌍 API is now globally accessible at:")
+        print(f"{public_url}/api/eth-signal")
+        print("\nShare this URL to access your trading signals from anywhere!")
+        return public_url
+    except Exception as e:
+        print(f"Error setting up ngrok: {e}\nAPI will be available locally at http://localhost:5000/api/eth-signal")
+        return None
+    
+def start_flask():
+    """Start the Flask app"""
+    try:
+        setup_ngrok()
+        app.run(host='0.0.0.0', port=5000)
+
+    except Exception as e:
+        print(f"Error starting Flask app: {e}")
+
+def update_latest_data(timestamp, price, signal):
+    """Update the latest data in the queue"""
+    # Remove old data if queue is full
+    if latest_data.full():
+        try:
+            latest_data.get_nowait()
+        except queue.Empty:
+            pass
+    
+    # Add new data
+    data = {
+        "timestamp": timestamp,
+        "price": price,
+        "signal": signal
+    }
+    latest_data.put(data)
+
+@app.route('/api/eth-signal', methods=['GET'])
+def get_eth_signal():
+    """API endpoint to get the latest ETH data"""
+    try:
+        data = latest_data.get_nowait()
+        latest_data.put(data)  # Put it back in the queue
+        return jsonify(data)
+    except queue.Empty:
+        return jsonify({"error": "No data available"}), 404
 
 class EnhancedCryptoTrader:
     def __init__(self, sequence_length=120, batch_size=64, update_interval=15):
@@ -614,4 +666,5 @@ async def main():
 
 if __name__ == "__main__":
     # Start the Flask server in a separate thread
+    threading.Thread(target=start_flask, daemon=True).start()
     asyncio.run(main())
