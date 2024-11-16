@@ -257,51 +257,6 @@ class EnhancedCryptoTrader:
         self.load_historical_data()
         self.initialize_model()
         self.initial_training()
-
-
-
-    # def save_model(self):
-    #     """
-    #     Save the model and scaler to disk
-    #     """
-    #     try:
-    #         torch.save({
-    #             'model_state_dict': self.model.state_dict(),
-    #             'sequence_length': self.sequence_length,
-    #             'features': self.features,
-    #         }, self.model_path)
-
-    #         joblib.dump(self.scaler, self.scaler_path)
-    #         print("Model and scaler saved successfully")
-    #     except Exception as e:
-    #         print(f"Error saving model: {e}")
-
-    # def load_saved_model(self) -> bool:
-    #     """
-    #     Load the model and scaler from disk if they exist
-    #     """
-    #     try:
-    #         if (os.path.exists(self.model_path) and os.path.exists(self.scaler_path)):
-    #             checkpoint = torch.load(self.model_path, map_location=self.device)
-
-    #             if (checkpoint['sequence_length'] == self.sequence_length and
-    #                 checkpoint['features'] == self.features):
-    #                 self.initialize_model()
-    #                 self.model.load_state_dict(checkpoint['model_state_dict'])
-    #                 self.model.eval()
-    #                 self.scaler = joblib.load(self.scaler_path)
-    #                 print("Model and scaler loaded successfully")
-    #                 return True
-    #             else:
-    #                 print("Model and features mismatch")
-    #                 return False
-    #         else:
-    #             print("No model or scaler found")
-    #             return False
-    #     except Exception as e:
-    #         print(f"Error loading model: {e}")
-    #         return False
-
     
     def load_historical_data(self):
         """Load and prepare historical data"""
